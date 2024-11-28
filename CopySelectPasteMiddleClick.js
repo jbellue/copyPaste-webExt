@@ -28,9 +28,30 @@ document.addEventListener("mousedown", (event) => {
         const target = event.target;
         if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") {
             event.preventDefault();
-            const cursorPos = target.selectionStart;
-            const textBefore = target.value.slice(0, cursorPos);
-            const textAfter = target.value.slice(cursorPos);
+            const rect = target.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const text = target.value;
+            const fontSize = getComputedStyle(target).fontSize;
+            const fontFamily = getComputedStyle(target).fontFamily;
+      
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
+            ctx.font = fontSize + " " + fontFamily;
+      
+            let totalWidth = 0;
+            let caretPosition = 0;
+            for (let i = 0; i < text.length; i++) {
+              const charWidth = ctx.measureText(text[i]).width;
+              if (totalWidth <= x && totalWidth + charWidth >= x) {
+                caretPosition = i;
+                break;
+              }
+              totalWidth += charWidth;
+            }
+    
+            target.setSelectionRange(caretPosition, caretPosition);
+            const textBefore = target.value.slice(0, caretPosition);
+            const textAfter = target.value.slice(caretPosition);
             target.value = `${textBefore}${copiedText}${textAfter}`;
 
             // Place the cursor after the inserted text
