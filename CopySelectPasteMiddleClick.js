@@ -47,12 +47,12 @@ document.addEventListener("mousedown", (event) => {
             const fontSize = style.fontSize;
             const fontFamily = style.fontFamily;
             const lineHeightStyle = style.lineHeight;
-            let lineHeight = 0;
+            let lineHeight;
             if (lineHeightStyle === "normal") {
                 lineHeight = parseFloat(fontSize) * 1.2;
             } else {
                 // Convert line-height to a number if it's in pixels
-                lineHeight = parseFloat(lineHeight);
+                lineHeight = parseFloat(lineHeightStyle);
             }
       
             const canvas = document.createElement("canvas");
@@ -61,6 +61,7 @@ document.addEventListener("mousedown", (event) => {
             let caretPosition = 0;
             let index = 0;
             let foundIndex = false;
+            let totalWidth = 0;
             for (; index < text.length; index++) {
                 // measure the width of each character before the cursor
                 const charWidth = ctx.measureText(text[index]).width;
