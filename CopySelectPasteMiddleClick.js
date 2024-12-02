@@ -108,7 +108,8 @@ const getTextAreaCaretPosition = (text, ctx, x, y, hiddenDiv) => {
             }
         }
     }
-    return 0;
+    // token wasn't found, add at the end
+    return text.length;
 }
 
 const getTextInputCaretPosition = (text, ctx, x) => {
