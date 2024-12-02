@@ -19,7 +19,6 @@ document.addEventListener("selectionchange", function() {
     const selectedText = getSelectedText();
     if (selectedText !== "") {
         copiedText = selectedText;
-        console.log("selection is " + copiedText)
     }
 });
 
@@ -120,7 +119,7 @@ document.addEventListener("mousedown", (event) => {
                             let charIndex = 0;
                             while (lineWidth > xCursor && charIndex < cursorLineTokens.length) {
                                 charIndex++;
-                                lineWidth = ctx.measureText(cursorLineTokens.slice(0, cursorLineTokens.length - charIndex)).width;
+                                lineWidth = ctx.measureText(cursorLineTokens.slice(0, -charIndex)).width;
                             }
                             caretPosition = totalCharacters - charIndex;
                             break;
