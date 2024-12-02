@@ -1,21 +1,23 @@
-let copiedText = ""
+let copiedText = "";
 
 const getSelectedText = () => {
     const selection = window.getSelection();
-    if (selection.anchorNode && selection.anchorNode.nodeType === 3) {
+    if (selection.anchorNode && selection.anchorNode.nodeType === Node.TEXT_NODE) {
         if (selection.toString() !== "") {
             return selection.toString();
         }
     } else {
         const activeElement = document.activeElement;
         if (activeElement.tagName === "INPUT" || activeElement.tagName === "TEXTAREA") {
-            return activeElement.value.substring(activeElement.selectionStart, activeElement.selectionEnd);
+            return activeElement.value.substring(
+                activeElement.selectionStart,
+                activeElement.selectionEnd);
         }
     }
     return "";
 };
 
-document.addEventListener("selectionchange", function() {
+document.addEventListener("selectionchange", () => {
     const selectedText = getSelectedText();
     if (selectedText !== "") {
         copiedText = selectedText;
@@ -46,7 +48,8 @@ document.addEventListener("mousedown", (event) => {
             }
             else if (target.tagName === "TEXTAREA") {
                 // Call this function before using the hidden div
-                const hiddenDiv = document.getElementById(hiddenDivId) || addHiddenDivToDocument();
+                const hiddenDivId = `id-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+                const hiddenDiv = document.getElementById(hiddenDivId) || addHiddenDivToDocument(hiddenDivId);
                 syncHiddenDivStyle(hiddenDiv, style);
                 caretPosition = getTextAreaCaretPosition(text, ctx, xCursor, yCursor, hiddenDiv);
             }
@@ -126,9 +129,7 @@ const getTextInputCaretPosition = (text, ctx, x) => {
     return text.length;
 }
 
-const hiddenDivId = `id-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
-
-const addHiddenDivToDocument = () => {
+const addHiddenDivToDocument = hiddenDivId => {
     const hiddenDiv = document.createElement('div');
     hiddenDiv.id = hiddenDivId;
     hiddenDiv.style.visibility = 'hidden';
