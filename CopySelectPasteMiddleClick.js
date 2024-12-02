@@ -59,50 +59,76 @@ document.addEventListener("mousedown", (event) => {
             const ctx = canvas.getContext("2d");
             ctx.font = fontSize + " " + fontFamily;
             let caretPosition = 0;
-            let index = 0;
             let foundIndex = false;
             let totalWidth = 0;
-            for (; index < text.length; index++) {
-                // measure the width of each character before the cursor
-                const charWidth = ctx.measureText(text[index]).width;
-                if (totalWidth <= xCursor && totalWidth + charWidth >= xCursor) {
-                    // if it goes over, we've found our index
-                    caretPosition = index;
-                    foundIndex = true;
-                    break;
-                }
-                totalWidth += charWidth;
-            }
-            if (!foundIndex) {
-                caretPosition = text.length;
-            }
-
-            if (target.tagName === "TEXTAREA") {
-            const textAreaWidth = textAreaFullWidth(style, target.offsetWidth);
-                const row = Math.floor(yCursor / lineHeight);
-                let targetCols = 0;
-                // keep measuring until we go over the full width
-                for (; index < text.length; index++) {
-                    const charWidth = ctx.measureText(text[index]).width;
-                    totalWidth += charWidth;
-                    if (totalWidth > textAreaWidth) {
-                        targetCols = index;
+            if (target.tagName === "INPUT" && target.type === "text") {
+                for (let i = 0; i < text.length; i++) {
+                    // measure the width of each character before the cursor
+                    const charWidth = ctx.measureText(text[i]).width;
+                    if (totalWidth <= xCursor && totalWidth + charWidth >= xCursor) {
+                        // if it goes over, we've found our index
+                        caretPosition = i;
+                        foundIndex = true;
                         break;
                     }
+                    totalWidth += charWidth;
                 }
-                // there's a bug here, because of the wrapping:
-                // 123456789112
-                //┌────────────┐
-                //│some text   │
-                //│wrapping    │
-                //└────────────┘
-                // the text "wrapping" is sent to the next row, but the width calculation
-                // doesn't handle that - so the rows are calculated as 12 characters, when
-                // there are only 9 in the first one.
-
-                caretPosition += targetCols * row;
+                if (!foundIndex) {
+                    caretPosition = text.length;
+                }
             }
-    
+            else if (target.tagName === "TEXTAREA") {
+                syncHiddenDivStyle(style);
+                const tokens = tokenize(text);
+                const lines = [];
+                let currentLineTokens = [];
+                let totalCharacters = 0;
+                let currentLineHeight = 0;
+            
+                hiddenDiv.textContent = ''; // Reset hidden div
+                // calculate the default margins
+                const hiddenDivBaseHeight = hiddenDiv.offsetHeight;
+                
+                let totalHeight = hiddenDivBaseHeight / 2;
+                
+                for (const token of tokens) {
+                    currentLineTokens.push(token);
+                    // Update hidden div with current line content
+                    hiddenDiv.textContent = currentLineTokens.join('');
+                    totalCharacters += token.length;
+                
+                    const newLineHeight = hiddenDiv.offsetHeight - hiddenDivBaseHeight;
+                
+                    if (currentLineHeight > 0 && newLineHeight > currentLineHeight) {
+                        // Line break detected
+                        // Push the current line (excluding the last token)
+                        lines.push(currentLineTokens.slice(0, -1).join(''));
+                        // start a new line only containing the token
+                        currentLineTokens = [token];
+                        totalHeight += currentLineHeight;
+                    }
+                
+                    currentLineHeight = newLineHeight;
+                
+                    // Check if the cursor is within this line and width range
+                    if (totalHeight <= yCursor && totalHeight + currentLineHeight > yCursor) {
+                        // If the cursor is within the current line, log the token under the cursor
+                        let cursorLineTokens = currentLineTokens.join('');
+                        let lineWidth = ctx.measureText(cursorLineTokens).width;
+
+                        if (xCursor <= lineWidth) {
+                            let charIndex = 0;
+                            while (lineWidth > xCursor && charIndex < cursorLineTokens.length) {
+                                charIndex++;
+                                lineWidth = ctx.measureText(cursorLineTokens.slice(0, cursorLineTokens.length - charIndex)).width;
+                            }
+                            caretPosition = totalCharacters - charIndex;
+                            break;
+                        }
+                    }
+                }
+            }
+
             target.setSelectionRange(caretPosition, caretPosition);
             const textBefore = target.value.slice(0, caretPosition);
             const textAfter = target.value.slice(caretPosition);
@@ -110,3 +136,41 @@ document.addEventListener("mousedown", (event) => {
         }
     }
 });
+
+const hiddenDivId = `id-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+
+const addHiddenDivToDocument = () => {
+    const hiddenDiv = document.createElement('div');
+    hiddenDiv.id = hiddenDivId;
+    hiddenDiv.style.visibility = 'hidden';
+    hiddenDiv.style.whiteSpace = 'pre-wrap';
+    hiddenDiv.style.wordWrap = 'break-word';
+    hiddenDiv.style.position = 'absolute';
+    hiddenDiv.style.top = '0';
+    hiddenDiv.style.left = '0';
+    document.body.appendChild(hiddenDiv);
+};
+
+const syncHiddenDivStyle = (sourceStyle) => {
+    hiddenDiv.style.width = sourceStyle.width;
+    hiddenDiv.style.fontFamily = sourceStyle.fontFamily;
+    hiddenDiv.style.fontSize = sourceStyle.fontSize;
+    hiddenDiv.style.fontWeight = sourceStyle.fontWeight;
+    hiddenDiv.style.lineHeight = sourceStyle.lineHeight;
+    hiddenDiv.style.padding = sourceStyle.padding;
+    hiddenDiv.style.border = sourceStyle.border;
+    hiddenDiv.style.boxSizing = sourceStyle.boxSizing;
+    hiddenDiv.style.letterSpacing = sourceStyle.letterSpacing;
+    hiddenDiv.style.whiteSpace = sourceStyle.whiteSpace;
+    hiddenDiv.style.textAlign = sourceStyle.textAlign;
+    hiddenDiv.style.overflow = sourceStyle.overflow;
+};
+const tokenize = text => {
+    // Split text into words and whitespace, preserving tabs and spaces
+    const regex = /[^\s\u00A0]+|\s+|\u00A0|\n/g; // Match words, whitespace, non-breaking spaces or new lines
+    return text.match(regex) || [];
+}
+
+// Call this function before using the hidden div
+addHiddenDivToDocument();
+const hiddenDiv = document.getElementById(hiddenDivId);
