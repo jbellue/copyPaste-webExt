@@ -22,15 +22,6 @@ document.addEventListener("selectionchange", function() {
     }
 });
 
-const textAreaFullWidth = (style, offsetWidth) => {
-    let rawWidth = offsetWidth;
-    rawWidth -= parseInt(style.getPropertyValue("border-left-width"));
-    rawWidth -= parseInt(style.getPropertyValue("border-right-width"));
-    rawWidth -= parseInt(style.getPropertyValue("padding-left"));
-    rawWidth -= parseInt(style.getPropertyValue("padding-right"));
-    return rawWidth;
-};
-
 document.addEventListener("mousedown", (event) => {
     if (event.button === 1 && copiedText !== "") {
         const target = event.target;
@@ -45,87 +36,19 @@ document.addEventListener("mousedown", (event) => {
             const style = getComputedStyle(target);
             const fontSize = style.fontSize;
             const fontFamily = style.fontFamily;
-            const lineHeightStyle = style.lineHeight;
-            let lineHeight;
-            if (lineHeightStyle === "normal") {
-                lineHeight = parseFloat(fontSize) * 1.2;
-            } else {
-                // Convert line-height to a number if it's in pixels
-                lineHeight = parseFloat(lineHeightStyle);
-            }
       
             const canvas = document.createElement("canvas");
             const ctx = canvas.getContext("2d");
             ctx.font = fontSize + " " + fontFamily;
             let caretPosition = 0;
-            let foundIndex = false;
-            let totalWidth = 0;
             if (target.tagName === "INPUT" && target.type === "text") {
-                for (let i = 0; i < text.length; i++) {
-                    // measure the width of each character before the cursor
-                    const charWidth = ctx.measureText(text[i]).width;
-                    if (totalWidth <= xCursor && totalWidth + charWidth >= xCursor) {
-                        // if it goes over, we've found our index
-                        caretPosition = i;
-                        foundIndex = true;
-                        break;
-                    }
-                    totalWidth += charWidth;
-                }
-                if (!foundIndex) {
-                    caretPosition = text.length;
-                }
+                caretPosition = getTextInputCaretPosition(text, ctx, xCursor);
             }
             else if (target.tagName === "TEXTAREA") {
-                syncHiddenDivStyle(style);
-                const tokens = tokenize(text);
-                const lines = [];
-                let currentLineTokens = [];
-                let totalCharacters = 0;
-                let currentLineHeight = 0;
-            
-                hiddenDiv.textContent = ''; // Reset hidden div
-                // calculate the default margins
-                const hiddenDivBaseHeight = hiddenDiv.offsetHeight;
-                
-                let totalHeight = hiddenDivBaseHeight / 2;
-                
-                for (const token of tokens) {
-                    currentLineTokens.push(token);
-                    // Update hidden div with current line content
-                    hiddenDiv.textContent = currentLineTokens.join('');
-                    totalCharacters += token.length;
-                
-                    const newLineHeight = hiddenDiv.offsetHeight - hiddenDivBaseHeight;
-                
-                    if (currentLineHeight > 0 && newLineHeight > currentLineHeight) {
-                        // Line break detected
-                        // Push the current line (excluding the last token)
-                        lines.push(currentLineTokens.slice(0, -1).join(''));
-                        // start a new line only containing the token
-                        currentLineTokens = [token];
-                        totalHeight += currentLineHeight;
-                    }
-                
-                    currentLineHeight = newLineHeight;
-                
-                    // Check if the cursor is within this line and width range
-                    if (totalHeight <= yCursor && totalHeight + currentLineHeight > yCursor) {
-                        // If the cursor is within the current line, log the token under the cursor
-                        let cursorLineTokens = currentLineTokens.join('');
-                        let lineWidth = ctx.measureText(cursorLineTokens).width;
-
-                        if (xCursor <= lineWidth) {
-                            let charIndex = 0;
-                            while (lineWidth > xCursor && charIndex < cursorLineTokens.length) {
-                                charIndex++;
-                                lineWidth = ctx.measureText(cursorLineTokens.slice(0, -charIndex)).width;
-                            }
-                            caretPosition = totalCharacters - charIndex;
-                            break;
-                        }
-                    }
-                }
+                // Call this function before using the hidden div
+                const hiddenDiv = document.getElementById(hiddenDivId) || addHiddenDivToDocument();
+                syncHiddenDivStyle(hiddenDiv, style);
+                caretPosition = getTextAreaCaretPosition(text, ctx, xCursor, yCursor, hiddenDiv);
             }
 
             target.setSelectionRange(caretPosition, caretPosition);
@@ -135,6 +58,72 @@ document.addEventListener("mousedown", (event) => {
         }
     }
 });
+
+const getTextAreaCaretPosition = (text, ctx, x, y, hiddenDiv) => {
+    const tokens = tokenize(text);
+    const lines = [];
+    let currentLineTokens = [];
+    let totalCharacters = 0;
+    let currentLineHeight = 0;
+
+    hiddenDiv.textContent = ''; // Reset hidden div
+    // calculate the default margins
+    const hiddenDivBaseHeight = hiddenDiv.offsetHeight;
+    
+    let totalHeight = hiddenDivBaseHeight / 2;
+    
+    for (const token of tokens) {
+        currentLineTokens.push(token);
+        // Update hidden div with current line content
+        hiddenDiv.textContent = currentLineTokens.join('');
+        totalCharacters += token.length;
+    
+        const newLineHeight = hiddenDiv.offsetHeight - hiddenDivBaseHeight;
+    
+        if (currentLineHeight > 0 && newLineHeight > currentLineHeight) {
+            // Line break detected
+            // Push the current line (excluding the last token)
+            lines.push(currentLineTokens.slice(0, -1).join(''));
+            // start a new line only containing the token
+            currentLineTokens = [token];
+            totalHeight += currentLineHeight;
+        }
+    
+        currentLineHeight = newLineHeight;
+    
+        // Check if we have the correct line
+        if (totalHeight <= y && totalHeight + currentLineHeight > y) {
+            let cursorLineTokens = currentLineTokens.join('');
+            let lineWidth = ctx.measureText(cursorLineTokens).width;
+
+            // if the line is wider than x, we have the correct token
+            if (lineWidth > x) {
+                // remove characters one by one until we get before x
+                let charIndex = 0;
+                while (lineWidth > x && charIndex < cursorLineTokens.length) {
+                    charIndex++;
+                    lineWidth = ctx.measureText(cursorLineTokens.slice(0, -charIndex)).width;
+                }
+                return totalCharacters - charIndex;
+            }
+        }
+    }
+    return 0;
+}
+
+const getTextInputCaretPosition = (text, ctx, x) => {
+    let totalWidth = 0;
+    for (let i = 0; i < text.length; i++) {
+        // measure the width of each character before the cursor
+        const charWidth = ctx.measureText(text[i]).width;
+        if (totalWidth <= x && totalWidth + charWidth >= x) {
+            // if it goes over, we've found our index
+            return i;
+        }
+        totalWidth += charWidth;
+    }
+    return text.length;
+}
 
 const hiddenDivId = `id-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
 
@@ -148,9 +137,10 @@ const addHiddenDivToDocument = () => {
     hiddenDiv.style.top = '0';
     hiddenDiv.style.left = '0';
     document.body.appendChild(hiddenDiv);
+    return hiddenDiv;
 };
 
-const syncHiddenDivStyle = (sourceStyle) => {
+const syncHiddenDivStyle = (hiddenDiv, sourceStyle) => {
     hiddenDiv.style.width = sourceStyle.width;
     hiddenDiv.style.fontFamily = sourceStyle.fontFamily;
     hiddenDiv.style.fontSize = sourceStyle.fontSize;
@@ -169,7 +159,3 @@ const tokenize = text => {
     const regex = /[^\s\u00A0]+|\s+|\u00A0|\n/g; // Match words, whitespace, non-breaking spaces or new lines
     return text.match(regex) || [];
 }
-
-// Call this function before using the hidden div
-addHiddenDivToDocument();
-const hiddenDiv = document.getElementById(hiddenDivId);
