@@ -2,7 +2,7 @@ let copiedText = "";
 
 const getSelectedText = () => {
     const selection = window.getSelection();
-    if (selection.anchorNode && selection.anchorNode.nodeType === Node.TEXT_NODE) {
+    if (selection !== null && selection.anchorNode && selection.anchorNode.nodeType === Node.TEXT_NODE) {
         if (selection.toString() !== "") {
             return selection.toString();
         }
@@ -17,14 +17,7 @@ const getSelectedText = () => {
     return "";
 };
 
-document.addEventListener("selectionchange", () => {
-    const selectedText = getSelectedText();
-    if (selectedText !== "") {
-        copiedText = selectedText;
-    }
-});
-
-document.addEventListener("mousedown", (event) => {
+const handleMiddleClick = (event) => {
     if (event.button === 1 && copiedText !== "") {
         const target = event.target;
         if ((target.tagName === "INPUT" && target.type === "text") 
@@ -57,10 +50,12 @@ document.addEventListener("mousedown", (event) => {
             target.setSelectionRange(caretPosition, caretPosition);
             const textBefore = target.value.slice(0, caretPosition);
             const textAfter = target.value.slice(caretPosition);
-            target.value = `${textBefore}${copiedText}${textAfter}`;
+            target.value = `${textBefore}${getCopiedText()}${textAfter}`;
         }
     }
-});
+};
+
+const getCopiedText = () => copiedText;
 
 const getTextAreaCaretPosition = (text, ctx, x, y, hiddenDiv) => {
     const tokens = tokenize(text);
@@ -156,8 +151,25 @@ const syncHiddenDivStyle = (hiddenDiv, sourceStyle) => {
     hiddenDiv.style.textAlign = sourceStyle.textAlign;
     hiddenDiv.style.overflow = sourceStyle.overflow;
 };
+
 const tokenize = text => {
     // Split text into words and whitespace, preserving tabs and spaces
     const regex = /[^\s\u00A0]+|\s+|\u00A0|\n/g; // Match words, whitespace, non-breaking spaces or new lines
     return text.match(regex) || [];
 }
+
+const handleSelectionChange = () => {
+    const selectedText = getSelectedText();
+    if (selectedText !== "") {
+        copiedText = selectedText;
+    }
+};
+
+
+document.addEventListener("selectionchange", () => {
+    handleSelectionChange();
+});
+
+document.addEventListener("mousedown", (event) => {
+    handleMiddleClick(event)
+});

@@ -6,10 +6,9 @@
     "description": "Copy text to a separate clipboard and paste it with middle click on editable fields",
   
     "content_scripts": [
-      {
-        "matches": ["<all_urls>"],
-        "js": ["CopySelectPasteMiddleClick.js"]
-      }
+        {
+            "matches": ["<all_urls>"],
+            "js": ["js/main.js"]
+        }
     ]
-  }
-  
+}
