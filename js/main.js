@@ -17,6 +17,8 @@ const getSelectedText = () => {
     return "";
 };
 
+const hiddenDivId = `id-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+
 const handleMiddleClick = (event) => {
     if (event.button === 1 && copiedText !== "") {
         const target = event.target;
@@ -41,7 +43,6 @@ const handleMiddleClick = (event) => {
             }
             else if (target.tagName === "TEXTAREA") {
                 // Call this function before using the hidden div
-                const hiddenDivId = `id-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
                 const hiddenDiv = document.getElementById(hiddenDivId) || addHiddenDivToDocument(hiddenDivId);
                 syncHiddenDivStyle(hiddenDiv, style);
                 caretPosition = getTextAreaCaretPosition(text, ctx, xCursor, yCursor, hiddenDiv);
