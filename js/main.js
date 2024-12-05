@@ -1,3 +1,4 @@
+const storageKey = "copy-paste-stored-key";
 let copiedText = "";
 
 //#region get the text
@@ -23,8 +24,6 @@ const getSelectedText = doc => {
     }
     return {found: found, selectedText: value};
 };
-
-const getCopiedText = () => copiedText;
 
 const getIframeSelectionRecursively = (iframe) => {
     try {
@@ -56,7 +55,7 @@ const handleSelectionChange = (event, doc) => {
     if (result.found && result.selectedText !== "") {
         event.preventDefault()
         console.log("Selected text (including nested iframes):", result.selectedText);
-        copiedText = result.selectedText;
+        chrome.storage.local.set({ [storageKey]: result.selectedText });
     }
 };
 
@@ -92,10 +91,10 @@ const handleMiddleClick = (event) => {
                     this worked great until the scrollbar appeared and screwed the whole calculation.
                     For now, just use the selection - i.e. where the cursor is.
                     If there's no selection, it'll insert at the end.
-                 */
+                    */
                 caretPosition = target.selectionStart;
             }
-            insertTextAtCaret(target, caretPosition, getCopiedText())
+            insertTextAtCaret(target, caretPosition, copiedText)
         }
     }
 };
@@ -183,4 +182,11 @@ document.addEventListener("mousedown", event => {
 });
 
 attachListenersToIframes(document);
+
+// Listen for changes in Chrome storage
+chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === "local" && changes[storageKey]) {
+        copiedText = changes[storageKey].newValue || "";
+    }
+});
 //#endregion

@@ -5,6 +5,9 @@
   
     "description": "Copy text to a separate clipboard and paste it with middle click on editable fields",
   
+    "permissions": [
+        "storage"
+      ],
     "content_scripts": [
         {
             "matches": ["<all_urls>"],
