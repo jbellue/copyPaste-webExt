@@ -44,7 +44,8 @@ const getIframeSelectionRecursively = (iframe) => {
             }
         }
     } catch (err) {
-        console.warn("Unable to access iframe or nested iframe:", err);
+        // ignore
+        // console.warn("Unable to access iframe or nested iframe:", err);
     }
     return { found: false, selectedText: "" };
 };
@@ -54,7 +55,6 @@ const handleSelectionChange = (event, doc) => {
 
     if (result.found && result.selectedText !== "") {
         event.preventDefault()
-        console.log("Selected text (including nested iframes):", result.selectedText);
         chrome.storage.local.set({ [storageKey]: result.selectedText });
     }
 };
@@ -73,7 +73,7 @@ const handleMiddleClick = (event) => {
         const target = event.target;
         if ((target.tagName === "INPUT" && target.type === "text") 
             || target.tagName === "TEXTAREA"
-            || (target.contentEditable === "true" || target.contentEditable === "inherit")) {
+            || target.isContentEditable) {
             event.preventDefault();
             let caretPosition = 0;
             if (target.tagName === "INPUT" && target.type === "text") {
