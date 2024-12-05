@@ -64,16 +64,17 @@ const attachSelectionChangeListener = doc => {
         handleSelectionChange(event, doc);
     });
 };
+
 const attachMouseDownListener = doc => {
     doc.addEventListener("mousedown", event => {
-        handleMiddleClick(event)
+        handleMiddleClick(event, doc)
     });
 }
 
 //#endregion
 
 //#region set the text
-const handleMiddleClick = (event) => {
+const handleMiddleClick = (event, doc) => {
     if (event.button === 1 && copiedText !== "") {
         const target = event.target;
         if ((target.tagName === "INPUT" && target.type === "text") 
@@ -81,10 +82,14 @@ const handleMiddleClick = (event) => {
             || target.isContentEditable) {
             event.preventDefault();
             let caretPosition = 0;
+
+            // Handle text inputs
             if (target.tagName === "INPUT" && target.type === "text") {
                 caretPosition = getTextInputCaretPosition(event.clientX, target);
             }
-            else {
+
+            // Handle textareas
+            else if (target.tagName === "TEXTAREA") {
                 /* 
                     I'm not sure how to get the caret position in a textarea,
                     and I tried a lot of different ways.
@@ -99,12 +104,17 @@ const handleMiddleClick = (event) => {
                     */
                 caretPosition = target.selectionStart;
             }
-            insertTextAtCaret(target, caretPosition, copiedText)
+
+            // Handle contentEditable
+            else {
+                caretPosition = getContentEditableCaretPosition(doc);
+            }
+            insertTextAtCaret(doc, target, caretPosition, copiedText)
         }
     }
 };
 
-const insertTextAtCaret = (target, caretPosition, text) => {
+const insertTextAtCaret = (doc, target, caretPosition, text) => {
     if (target.setSelectionRange) {
         target.setSelectionRange(caretPosition, caretPosition);
         const textBefore = target.value.slice(0, caretPosition);
@@ -114,7 +124,7 @@ const insertTextAtCaret = (target, caretPosition, text) => {
     }
     else {
         // target should be contenteditable
-        const selection = window.getSelection();
+        const selection = doc.getSelection();
         if (!selection.rangeCount) return; // Exit if there's no selection
         const range = selection.getRangeAt(0);
         const commonAncestor = range.commonAncestorContainer;
@@ -123,7 +133,7 @@ const insertTextAtCaret = (target, caretPosition, text) => {
         if (!target.contains(commonAncestor)) return;
 
         // Create a text node with the desired text
-        const textNode = document.createTextNode(text);
+        const textNode = doc.createTextNode(text);
 
         // Insert the text node at the current cursor position
         range.deleteContents(); // Remove any selected text
@@ -154,6 +164,14 @@ const getTextInputCaretPosition = (xCursor, target) => {
     }
     return text.length;
 }
+
+const getContentEditableCaretPosition = (doc) => {
+    const selection = doc.getSelection();
+    if (selection.rangeCount === 0) return 0; // No selection
+
+    return selection.focusOffset;
+}
+
 //#endregion
 
 //#region set event handlers
