@@ -64,6 +64,11 @@ const attachSelectionChangeListener = doc => {
         handleSelectionChange(event, doc);
     });
 };
+const attachMouseDownListener = doc => {
+    doc.addEventListener("mousedown", event => {
+        handleMiddleClick(event)
+    });
+}
 
 //#endregion
 
@@ -153,8 +158,9 @@ const getTextInputCaretPosition = (xCursor, target) => {
 
 //#region set event handlers
 const attachListenersToIframes = (rootDoc, iframePath = []) => {
-    // Attach to the root document
+    // Attach listeners to the root document
     attachSelectionChangeListener(rootDoc);
+    attachMouseDownListener(rootDoc);
 
     // Find all iFrames in the current document
     const iframes = rootDoc.querySelectorAll("iframe");
@@ -177,9 +183,6 @@ const attachListenersToIframes = (rootDoc, iframePath = []) => {
         }
     }
 };
-document.addEventListener("mousedown", event => {
-    handleMiddleClick(event)
-});
 
 attachListenersToIframes(document);
 
