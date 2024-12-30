@@ -101,8 +101,12 @@ const handleMiddleClick = (event, doc) => {
                     this worked great until the scrollbar appeared and screwed the whole calculation.
                     For now, just use the selection - i.e. where the cursor is.
                     If there's no selection, it'll insert at the end.
-                    */
-                caretPosition = target.selectionStart;
+                    
+                    However, if there was a selection, the caret will be somewhere. To handle that,
+                    we set the caret position to the cursor if the target has focus, otherwise to the
+                    end of the value
+                */
+                caretPosition = target.matches(':focus') ? target.selectionStart : target.value.length;
             }
 
             // Handle contentEditable
