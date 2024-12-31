@@ -58,17 +58,12 @@ browser.runtime.onMessage.addListener((message) => {
             // Add content to the popup
             popup.innerHTML = `
 <div style="display: flex; justify-content: center; align-items: center; gap: 10px;">
-    <div style="flex: 0 0 160px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+    <div style="flex: 0 0 170px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
         <div style="height: 40px;">
-            <input type="range" id="numberSlider" min="1" max="20" value="10" 
-                style="width: 100%; margin-top: 9px">
+            <input type="range" id="numberSlider" min="1" max="20" style="width: 100%; margin-top: 9px">
             <span id="sliderValue" style="font-weight: bold; margin-top: 5px; position: absolute; top: -2px; padding-left: 18px"></span>
         </div>
         <select id="lorem_type" style="width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; height: 40px;">
-            <option value="lorem_ipsum">Lorem Ipsum</option>
-            <option value="moby_dick">Moby Dick</option>
-            <option value="great_expectations">Great Expectations</option>
-            <option value="metamorphosis">The Metamorphosis</option>
         </select>
     </div>
     <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;">
@@ -79,8 +74,7 @@ browser.runtime.onMessage.addListener((message) => {
         </select>
         <button id="lorem_generate" style="width: 100%; padding: 10px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; height: 40px;">Generate ✏️</button>
     </div>
-</div>
-`;
+</div>`;
 
             // Append overlay and popup to the body
             document.body.appendChild(overlay);
@@ -91,6 +85,15 @@ browser.runtime.onMessage.addListener((message) => {
             const sliderValue = document.getElementById("sliderValue");
             const units = document.getElementById("lorem_units");
             const type = document.getElementById("lorem_type");
+            
+            browser.storage.local.get('texts').then((data) => {
+                for (const key in data.texts) {
+                    const option = document.createElement('option');
+                    option.value = key;
+                    option.textContent = data.texts[key].title;
+                    type.appendChild(option);
+                }
+            });
 
             // Function to update the slider value position
             const updateSliderValuePosition = () => {
@@ -157,11 +160,10 @@ browser.runtime.onMessage.addListener((message) => {
 });
 
 function generateLoremIpsum() {
-    return browser.storage.local.get('texts')
-    .then((data) => {
+    return browser.storage.local.get('texts').then((data) => {
         // Access individual properties
         if (data.texts) {
-            const sourceText = data.texts[settings.type];
+            const sourceText = data.texts[settings.type].data;
             const words = sourceText.split(" ");
             const totalWords = words.length;
             let result = "";
