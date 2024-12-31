@@ -1,6 +1,12 @@
 let mouseX = 0;
 let mouseY = 0;
 
+const link = document.createElement("link");
+link.rel = "stylesheet";
+link.type = "text/css";
+link.href = browser.runtime.getURL("styles/styles.css");
+document.head.appendChild(link);
+
 const settings = {
     count: 10,
     type: 'lorem_ipsum',
@@ -59,15 +65,6 @@ browser.runtime.onMessage.addListener((message) => {
         <button id="lorem_generate" class="loremIpsumButton" aria-label="Generate Lorem Ipsum text">Generate ✏️</button>
     </div>
 </div>`;
-
-            // Create a link element for the CSS file
-            const link = document.createElement("link");
-            link.rel = "stylesheet";
-            link.type = "text/css";
-            link.href = browser.runtime.getURL("styles/styles.css");
-            // Append the link to the head of the document
-            document.head.appendChild(link);
-
             // Append overlay and popup to the body
             document.body.appendChild(overlay);
             document.body.appendChild(popup);
