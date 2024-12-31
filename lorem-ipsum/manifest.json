@@ -6,6 +6,7 @@
     "description": "Insert Lorem Ipsum from the context menu",
   
     "permissions": [
+        "storage",
         "contextMenus",
         "activeTab"
     ],

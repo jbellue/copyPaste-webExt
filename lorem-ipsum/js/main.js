@@ -1,6 +1,19 @@
 let mouseX = 0;
 let mouseY = 0;
 
+const settings = {
+    count: 10,
+    type: 'lorem_ipsum',
+    unit: 'paragraphs'
+};
+
+const storeSettings = () => {
+    browser.storage.local.set({ userSettings: settings })
+    .catch((error) => {
+        console.error('Error updating lorem ipsum settings:', error);
+    });
+}
+
 // Capture mouse coordinates on right-click
 document.addEventListener("contextmenu", (event) => {
     mouseX = event.pageX;
@@ -64,7 +77,7 @@ browser.runtime.onMessage.addListener((message) => {
             <option value="words">Words</option>
             <option value="letters">Letters</option>
         </select>
-        <button id="lorem_generate" style="width: 100%; padding: 10px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; height: 40px;">Generate</button>
+        <button id="lorem_generate" style="width: 100%; padding: 10px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; height: 40px;">Generate ✏️</button>
     </div>
 </div>
 `;
@@ -76,13 +89,15 @@ browser.runtime.onMessage.addListener((message) => {
             // Update the displayed value of the slider
             const slider = document.getElementById("numberSlider");
             const sliderValue = document.getElementById("sliderValue");
+            const units = document.getElementById("lorem_units");
+            const type = document.getElementById("lorem_type");
 
             // Function to update the slider value position
             const updateSliderValuePosition = () => {
-                sliderValue.textContent = slider.value; // Update the displayed value
+                sliderValue.textContent = settings.count;
                 const thumbWidth = 20; // Approximate width of the slider thumb
                 const valueWidth = sliderValue.offsetWidth; // Get the width of the slider value text
-                const valuePercentage = (slider.value - slider.min) / (slider.max - slider.min); // Calculate the percentage of the current value
+                const valuePercentage = (settings.count - slider.min) / (slider.max - slider.min); // Calculate the percentage of the current value
                 sliderValue.style.left = `${valuePercentage * (slider.offsetWidth - thumbWidth) + (thumbWidth / 2) - (valueWidth / 2)}px`; // Adjust position
             };
 
@@ -90,12 +105,24 @@ browser.runtime.onMessage.addListener((message) => {
             updateSliderValuePosition();
 
             slider.addEventListener("input", () => {
+                settings.count = slider.value;
                 updateSliderValuePosition();
+                storeSettings();
             });
+            
+            units.addEventListener('change', () => {
+                settings.unit = units.value;
+                storeSettings();
+            })
+            
+            type.addEventListener('change', () => {
+                settings.type = type.value;
+                storeSettings();
+            })
 
             // Add event listeners for the button
             document.getElementById("lorem_generate").addEventListener("click", () => {
-                inputElement.value = generateLoremIpsum(slider.value, document.getElementById("lorem_units").value, document.getElementById("lorem_type").value)
+                inputElement.value = generateLoremIpsum()
                 cleanup();
             });
 
@@ -107,30 +134,44 @@ browser.runtime.onMessage.addListener((message) => {
 
             // Remove the popup and overlay when clicking outside of the popup
             overlay.addEventListener("click", cleanup);
+
+            browser.storage.local.get('userSettings')
+                .then((result) => {
+                    // Access individual properties
+                    if (result.userSettings) {
+                        settings.count = result.userSettings.count
+                        settings.unit = result.userSettings.unit
+                        settings.type = result.userSettings.type
+                        slider.value = settings.count;
+                        updateSliderValuePosition();
+                        units.value = settings.unit;
+                        type.value = settings.type;
+                    }
+                });
         } else {
             console.error("No valid input element found at the clicked position.");
         }
     }
 });
 
-function generateLoremIpsum(count, unit, textType) {
-    const sourceText = texts[textType];
+function generateLoremIpsum() {
+    const sourceText = texts[settings.type];
     const words = sourceText.split(" ");
     const totalWords = words.length;
     let result = "";
 
-    if (unit === "words") {
-        for (let i = 0; i < count; i++) {
+    if (settings.unit === "words") {
+        for (let i = 0; i < settings.count; i++) {
             result += words[i % totalWords] + " "; // Use modulo to wrap around
         }
-    } else if (unit === "letters") {
+    } else if (settings.unit === "letters") {
         const totalChars  = sourceText.length;
-        for (let i = 0; i < count; i++) {
+        for (let i = 0; i < settings.count; i++) {
             result += sourceText[i % totalChars]; // Use modulo to wrap around
         }
-    } else if (unit === "paragraphs") {
+    } else if (settings.unit === "paragraphs") {
         const paragraphs = sourceText.split("\n"); // Assuming paragraphs are separated by double newlines
-        for (let i = 0; i < count; i++) {
+        for (let i = 0; i < settings.count; i++) {
             result += paragraphs[i % paragraphs.length] + "\n\n"; // Use modulo to wrap around
         }
     }
