@@ -7,7 +7,7 @@ const texts = {
 
 browser.runtime.onInstalled.addListener(() => {
     browser.contextMenus.create({
-        id: "contextMenu",
+        id: "insertLoremIpsumContextMenu",
         title: "Insert LoremIpsum",
         contexts: ["editable"]
     });
@@ -38,7 +38,7 @@ browser.runtime.onInstalled.addListener(() => {
 });
 
 browser.contextMenus.onClicked.addListener((info, tab) => {
-    if (info.menuItemId === "contextMenu") {
+    if (info.menuItemId === "insertLoremIpsumContextMenu") {
         // Send the clicked element's information to the content script
         browser.tabs.sendMessage(tab.id, { action: "showPopup" });
     }
