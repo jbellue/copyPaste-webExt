@@ -75,14 +75,7 @@ browser.runtime.onMessage.addListener((message) => {
             const units = document.getElementById("lorem_units");
             const type = document.getElementById("lorem_type");
             
-            browser.storage.local.get('texts').then((data) => {
-                for (const key in data.texts) {
-                    const option = document.createElement('option');
-                    option.value = key;
-                    option.textContent = data.texts[key].title;
-                    type.appendChild(option);
-                }
-            });
+            populateTextTypes(type);
 
             // Function to update the slider value position
             const updateSliderValuePosition = () => {
@@ -130,22 +123,37 @@ browser.runtime.onMessage.addListener((message) => {
             // Remove the popup and overlay when clicking outside of the popup
             overlay.addEventListener("click", cleanup);
 
-            browser.storage.local.get('userSettings')
-                .then((result) => {
-                    // Access individual properties
-                    if (result.userSettings) {
-                        settings.count = result.userSettings.count
-                        settings.unit = result.userSettings.unit
-                        settings.type = result.userSettings.type
-                        slider.value = settings.count;
-                        updateSliderValuePosition();
-                        units.value = settings.unit;
-                        type.value = settings.type;
-                    }
-                });
+            loadUserSettings(slider, units, type);
         } else {
             console.error("No valid input element found at the clicked position.");
         }
+    }
+
+    function loadUserSettings(slider, units, type) {
+        browser.storage.local.get('userSettings')
+            .then((result) => {
+                // Access individual properties
+                if (result.userSettings) {
+                    settings.count = result.userSettings.count;
+                    settings.unit = result.userSettings.unit;
+                    settings.type = result.userSettings.type;
+                    slider.value = settings.count;
+                    updateSliderValuePosition();
+                    units.value = settings.unit;
+                    type.value = settings.type;
+                }
+            });
+    }
+
+    function populateTextTypes(selectObject) {
+        browser.storage.local.get('texts').then((data) => {
+            for (const key in data.texts) {
+                const option = document.createElement('option');
+                option.value = key;
+                option.textContent = data.texts[key].title;
+                selectObject.appendChild(option);
+            }
+        });
     }
 });
 
