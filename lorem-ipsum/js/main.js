@@ -30,26 +30,11 @@ browser.runtime.onMessage.addListener((message) => {
 
             // Create the overlay
             const overlay = document.createElement("div");
-            overlay.id = "custom-overlay";
-            overlay.style.position = "fixed";
-            overlay.style.top = "0";
-            overlay.style.left = "0";
-            overlay.style.width = "100%";
-            overlay.style.height = "100%";
-            overlay.style.backgroundColor = "rgba(0, 0, 0, 0.5)"; // Grey out effect
-            overlay.style.zIndex = "999"; // Below the popup
-            overlay.style.cursor = "pointer"; // Indicate that clicking will close the popup
+            overlay.id = "loremIpsumOverlay";
 
             // Create the popup
             const popup = document.createElement("div");
-            popup.id = "custom-popup";
-            popup.style.position = "absolute";
-            popup.style.backgroundColor = "white";
-            popup.style.border = "1px solid black";
-            popup.style.padding = "10px";
-            popup.style.zIndex = "1000"; // Above the overlay
-            popup.style.boxShadow = "0 2px 10px rgba(0, 0, 0, 0.2)";
-            popup.style.borderRadius = "8px";
+            popup.id = "loremIpsumPopup";
 
             // Position the popup roughly over the input element
             popup.style.left = `${rect.left + window.scrollX}px`; // Adjust for scrolling
@@ -57,24 +42,31 @@ browser.runtime.onMessage.addListener((message) => {
 
             // Add content to the popup
             popup.innerHTML = `
-<div style="display: flex; justify-content: center; align-items: center; gap: 10px;">
-    <div style="flex: 0 0 170px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-        <div style="height: 40px;">
-            <input type="range" id="numberSlider" min="1" max="20" style="width: 100%; margin-top: 9px">
-            <span id="sliderValue" style="font-weight: bold; margin-top: 5px; position: absolute; top: -2px; padding-left: 18px"></span>
+<div class="loremIpsumContainer">
+    <div class="loremIpsumColumn">
+        <div class="loremIpsumSliderContainer">
+            <input type="range" id="numberSlider" min="1" max="20" class="loremIpsumSlider" aria-label="Number of items to generate">
+            <span id="sliderValue" class="loremIpsumSliderValue"></span>
         </div>
-        <select id="lorem_type" style="width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; height: 40px;">
-        </select>
+        <select id="lorem_type" class="loremIpsumSelect" aria-label="Select type of text to generate"></select>
     </div>
-    <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-        <select id="lorem_units" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; margin-bottom: 5px; height: 40px;">
+    <div class="loremIpsumColumnFlex">
+        <select id="lorem_units" class="loremIpsumSelect" aria-label="Select unit of measurement">
             <option value="paragraphs">Paragraphs</option>
             <option value="words">Words</option>
             <option value="letters">Letters</option>
         </select>
-        <button id="lorem_generate" style="width: 100%; padding: 10px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; height: 40px;">Generate ✏️</button>
+        <button id="lorem_generate" class="loremIpsumButton" aria-label="Generate Lorem Ipsum text">Generate ✏️</button>
     </div>
 </div>`;
+
+            // Create a link element for the CSS file
+            const link = document.createElement("link");
+            link.rel = "stylesheet";
+            link.type = "text/css";
+            link.href = browser.runtime.getURL("styles/styles.css");
+            // Append the link to the head of the document
+            document.head.appendChild(link);
 
             // Append overlay and popup to the body
             document.body.appendChild(overlay);
