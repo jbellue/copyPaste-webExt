@@ -122,6 +122,7 @@ browser.runtime.onMessage.addListener((message) => {
 
             // Function to remove the overlay and popup
             function cleanup() {
+                overlay.removeEventListener("click", cleanup);
                 document.body.removeChild(overlay);
                 document.body.removeChild(popup);
             }
