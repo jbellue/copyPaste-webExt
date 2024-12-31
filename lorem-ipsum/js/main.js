@@ -9,7 +9,7 @@ document.head.appendChild(link);
 
 const settings = {
     count: 10,
-    type: 'lorem_ipsum',
+    sourceText: 'lorem_ipsum',
     unit: 'paragraphs'
 };
 
@@ -51,18 +51,18 @@ browser.runtime.onMessage.addListener((message) => {
 <div class="loremIpsumContainer">
     <div class="loremIpsumColumn">
         <div class="loremIpsumSliderContainer">
-            <input type="range" id="numberSlider" min="1" max="20" class="loremIpsumSlider" aria-label="Number of items to generate">
-            <span id="sliderValue" class="loremIpsumSliderValue"></span>
+            <input type="range" id="loremIpsumNumberSlider" min="1" max="20" class="loremIpsumSlider" aria-label="Number of items to generate">
+            <span id="loremIpsumSliderValue" class="loremIpsumSliderValue"></span>
         </div>
-        <select id="lorem_type" class="loremIpsumSelect" aria-label="Select type of text to generate"></select>
+        <select id="loremIpsumSourceText" class="loremIpsumSelect" aria-label="Select type of text to generate"></select>
     </div>
     <div class="loremIpsumColumnFlex">
-        <select id="lorem_units" class="loremIpsumSelect" aria-label="Select unit of measurement">
+        <select id="loremIpsumUnits" class="loremIpsumSelect" aria-label="Select unit of measurement">
             <option value="paragraphs">Paragraphs</option>
             <option value="words">Words</option>
             <option value="letters">Letters</option>
         </select>
-        <button id="lorem_generate" class="loremIpsumButton" aria-label="Generate Lorem Ipsum text">Generate ✏️</button>
+        <button id="loremIpsumGenerate" class="loremIpsumButton" aria-label="Generate Lorem Ipsum text">Generate ✏️</button>
     </div>
 </div>`;
             // Append overlay and popup to the body
@@ -70,12 +70,12 @@ browser.runtime.onMessage.addListener((message) => {
             document.body.appendChild(popup);
 
             // Update the displayed value of the slider
-            const slider = document.getElementById("numberSlider");
-            const sliderValue = document.getElementById("sliderValue");
-            const units = document.getElementById("lorem_units");
-            const type = document.getElementById("lorem_type");
+            const slider = document.getElementById("loremIpsumNumberSlider");
+            const sliderValue = document.getElementById("loremIpsumSliderValue");
+            const units = document.getElementById("loremIpsumUnits");
+            const sourceText = document.getElementById("loremIpsumSourceText");
             
-            populateTextTypes(type);
+            populateTextTypes(sourceText);
 
             // Function to update the slider value position
             const updateSliderValuePosition = () => {
@@ -85,6 +85,32 @@ browser.runtime.onMessage.addListener((message) => {
                 const valuePercentage = (settings.count - slider.min) / (slider.max - slider.min); // Calculate the percentage of the current value
                 sliderValue.style.left = `${valuePercentage * (slider.offsetWidth - thumbWidth) + (thumbWidth / 2) - (valueWidth / 2)}px`; // Adjust position
             };
+            
+            function loadUserSettings(slider, units, sourceText) {
+                browser.storage.local.get('userSettings').then((result) => {
+                    // Access individual properties
+                    if (result.userSettings) {
+                        settings.count = result.userSettings.count;
+                        settings.unit = result.userSettings.unit;
+                        settings.sourceText = result.userSettings.sourceText;
+                        slider.value = settings.count;
+                        updateSliderValuePosition();
+                        units.value = settings.unit;
+                        sourceText.value = settings.sourceText;
+                    }
+                });
+            }
+
+            function populateTextTypes(selectObject) {
+                browser.storage.local.get('texts').then((data) => {
+                    for (const key in data.texts) {
+                        const option = document.createElement('option');
+                        option.value = key;
+                        option.textContent = data.texts[key].title;
+                        selectObject.appendChild(option);
+                    }
+                });
+            }
 
             // Initial position calculation
             updateSliderValuePosition();
@@ -100,13 +126,13 @@ browser.runtime.onMessage.addListener((message) => {
                 storeSettings();
             })
             
-            type.addEventListener('change', () => {
-                settings.type = type.value;
+            sourceText.addEventListener('change', () => {
+                settings.sourceText = sourceText.value;
                 storeSettings();
             })
 
             // Add event listeners for the button
-            document.getElementById("lorem_generate").addEventListener("click", () => {
+            document.getElementById("loremIpsumGenerate").addEventListener("click", () => {
                 generateLoremIpsum().then(loremText => {
                     inputElement.value = loremText;
                 })
@@ -123,37 +149,10 @@ browser.runtime.onMessage.addListener((message) => {
             // Remove the popup and overlay when clicking outside of the popup
             overlay.addEventListener("click", cleanup);
 
-            loadUserSettings(slider, units, type);
+            loadUserSettings(slider, units, sourceText);
         } else {
             console.error("No valid input element found at the clicked position.");
         }
-    }
-
-    function loadUserSettings(slider, units, type) {
-        browser.storage.local.get('userSettings')
-            .then((result) => {
-                // Access individual properties
-                if (result.userSettings) {
-                    settings.count = result.userSettings.count;
-                    settings.unit = result.userSettings.unit;
-                    settings.type = result.userSettings.type;
-                    slider.value = settings.count;
-                    updateSliderValuePosition();
-                    units.value = settings.unit;
-                    type.value = settings.type;
-                }
-            });
-    }
-
-    function populateTextTypes(selectObject) {
-        browser.storage.local.get('texts').then((data) => {
-            for (const key in data.texts) {
-                const option = document.createElement('option');
-                option.value = key;
-                option.textContent = data.texts[key].title;
-                selectObject.appendChild(option);
-            }
-        });
     }
 });
 
@@ -161,7 +160,7 @@ function generateLoremIpsum() {
     return browser.storage.local.get('texts').then((data) => {
         // Access individual properties
         if (data.texts) {
-            const sourceText = data.texts[settings.type].data;
+            const sourceText = data.texts[settings.sourceText].data;
             const words = sourceText.split(" ");
             const totalWords = words.length;
             let result = "";
