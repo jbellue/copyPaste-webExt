@@ -93,11 +93,11 @@ browser.runtime.onMessage.addListener((message) => {
                         settings.count = result.userSettings.count;
                         settings.unit = result.userSettings.unit;
                         settings.sourceText = result.userSettings.sourceText;
-                        slider.value = settings.count;
-                        updateSliderValuePosition();
-                        units.value = settings.unit;
-                        sourceText.value = settings.sourceText;
                     }
+                    slider.value = settings.count;
+                    updateSliderValuePosition();
+                    units.value = settings.unit;
+                    sourceText.value = settings.sourceText;
                 });
             }
 
