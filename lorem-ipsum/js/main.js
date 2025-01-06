@@ -24,8 +24,8 @@ const storeSettings = () => {
 
 // Capture mouse coordinates on right-click
 document.addEventListener("contextmenu", (event) => {
-    mouseCoordinates.x = event.pageX;
-    mouseCoordinates.y = event.pageY;
+    mouseCoordinates.x = event.clientX;
+    mouseCoordinates.y = event.clientY;
 });
 
 browser.runtime.onMessage.addListener((message) => {
