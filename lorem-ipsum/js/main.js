@@ -102,11 +102,11 @@ browser.runtime.onMessage.addListener((message) => {
                     sourceText.value = settings.sourceText;
                 });
             }
+            const createOption = (value, content) => {
+                return `<option value="${value}">${content}</option>`;
+            }
 
             function populateTextTypes(selectObject) {
-                const createOption = (value, content) => {
-                    return `<option value="${value}">${content}</option>`;
-                }
                 browser.storage.local.get('texts').then((data) => {
                     let optionsHTML = createOption("any", "Any");
                     Object.keys(data.texts).forEach(key => {
