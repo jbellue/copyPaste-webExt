@@ -105,16 +105,14 @@ browser.runtime.onMessage.addListener((message) => {
 
             function populateTextTypes(selectObject) {
                 const createOption = (value, content) => {
-                    const option = document.createElement('option');
-                    option.value = value;
-                    option.textContent = content;
-                    return option
+                    return `<option value="${value}">${content}</option>`;
                 }
                 browser.storage.local.get('texts').then((data) => {
-                    selectObject.appendChild(createOption("any", "Any"));
-                    for (const key in data.texts) {
-                        selectObject.appendChild(createOption(key, data.texts[key].title));
-                    }
+                    let optionsHTML = createOption("any", "Any");
+                    Object.keys(data.texts).forEach(key => {
+                        optionsHTML += createOption(key, data.texts[key].title);
+                    });
+                    selectObject.innerHTML = optionsHTML;
                 });
             }
 
