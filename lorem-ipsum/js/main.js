@@ -155,7 +155,7 @@ browser.runtime.onMessage.addListener((message) => {
 
             loadUserSettings(slider, units, sourceText);
         } else {
-            console.error("No valid input element found at the clicked position.");
+            console.error("No valid input element found at the clicked position.", mouseCoordinates);
         }
     }
 });
