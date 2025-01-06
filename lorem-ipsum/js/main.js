@@ -102,12 +102,16 @@ browser.runtime.onMessage.addListener((message) => {
             }
 
             function populateTextTypes(selectObject) {
+                const createOption = (value, content) => {
+                    const option = document.createElement('option');
+                    option.value = value;
+                    option.textContent = content;
+                    return option
+                }
                 browser.storage.local.get('texts').then((data) => {
+                    selectObject.appendChild(createOption("any", "Any"));
                     for (const key in data.texts) {
-                        const option = document.createElement('option');
-                        option.value = key;
-                        option.textContent = data.texts[key].title;
-                        selectObject.appendChild(option);
+                        selectObject.appendChild(createOption(key, data.texts[key].title));
                     }
                 });
             }
@@ -160,7 +164,15 @@ function generateLoremIpsum() {
     return browser.storage.local.get('texts').then((data) => {
         // Access individual properties
         if (data.texts) {
-            const sourceText = data.texts[settings.sourceText].data;
+            let sourceTextId;
+
+            if (settings.sourceText === "any") {
+                const keys = Object.keys(data.texts);
+                sourceTextId = keys[Math.floor(Math.random() * keys.length)];
+            } else {
+                sourceTextId = settings.sourceText;
+            }
+            const sourceText = data.texts[sourceTextId].data;
             const words = sourceText.split(" ");
             const totalWords = words.length;
             let result = "";
