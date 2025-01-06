@@ -1,5 +1,7 @@
-let mouseX = 0;
-let mouseY = 0;
+const mouseCoordinates = {
+    x: 0,
+    y: 0
+};
 
 const link = document.createElement("link");
 link.rel = "stylesheet";
@@ -22,13 +24,13 @@ const storeSettings = () => {
 
 // Capture mouse coordinates on right-click
 document.addEventListener("contextmenu", (event) => {
-    mouseX = event.pageX;
-    mouseY = event.pageY;
+    mouseCoordinates.x = event.pageX;
+    mouseCoordinates.y = event.pageY;
 });
 
 browser.runtime.onMessage.addListener((message) => {
     if (message.action === "showPopup") {
-        const inputElement = document.elementFromPoint(mouseX, mouseY);
+        const inputElement = document.elementFromPoint(mouseCoordinates.x, mouseCoordinates.y);
 
         // Check if the inputElement is valid
         if (inputElement) {
