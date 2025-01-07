@@ -1,7 +1,4 @@
-const mouseCoordinates = {
-    x: 0,
-    y: 0
-};
+let targetElement;
 
 const link = document.createElement("link");
 link.rel = "stylesheet";
@@ -24,17 +21,14 @@ const storeSettings = () => {
 
 // Capture mouse coordinates on right-click
 document.addEventListener("contextmenu", (event) => {
-    mouseCoordinates.x = event.clientX;
-    mouseCoordinates.y = event.clientY;
+    targetElement = event.target;
 });
 
 browser.runtime.onMessage.addListener((message) => {
     if (message.action === "showPopup") {
-        const inputElement = document.elementFromPoint(mouseCoordinates.x, mouseCoordinates.y);
-
-        // Check if the inputElement is valid
-        if (inputElement) {
-            const rect = inputElement.getBoundingClientRect();
+        // Check if the targetElement is valid
+        if (targetElement) {
+            const rect = targetElement.getBoundingClientRect();
 
             // Create the overlay
             const overlay = document.createElement("div");
@@ -136,26 +130,41 @@ browser.runtime.onMessage.addListener((message) => {
             })
 
             // Add event listeners for the button
-            document.getElementById("loremIpsumGenerate").addEventListener("click", () => {
+            document.getElementById("loremIpsumGenerate").addEventListener("click", insertLoremIpsumThenCleanup);
+
+            function insertLoremIpsumThenCleanup() {
                 generateLoremIpsum().then(loremText => {
-                    inputElement.value = loremText;
+                    targetElement.value = loremText;
                 })
                 cleanup();
-            });
+            }
 
             // Function to remove the overlay and popup
             function cleanup() {
+                document.getElementById("loremIpsumGenerate").removeEventListener("click", insertLoremIpsumThenCleanup);
                 overlay.removeEventListener("click", cleanup);
+                document.removeEventListener("keydown", keyboardHandler)
                 document.body.removeChild(overlay);
                 document.body.removeChild(popup);
             }
 
-            // Remove the popup and overlay when clicking outside of the popup
+            // Function to remove the overlay and popup
+            function keyboardHandler(e) {
+                if (e.key === "Escape") {
+                    cleanup();
+                }
+                else if (e.key === "Enter") {
+                    insertLoremIpsumThenCleanup();
+                }
+            }
+
+            // Remove the popup and overlay when clicking outside of the popup or pressing escape
             overlay.addEventListener("click", cleanup);
+            document.addEventListener("keydown", keyboardHandler)
 
             loadUserSettings(slider, units, sourceText);
         } else {
-            console.error("No valid input element found at the clicked position.", mouseCoordinates);
+            console.error("No valid input element found at the clicked position.");
         }
     }
 });
