@@ -24,7 +24,7 @@ document.addEventListener("contextmenu", (event) => {
 });
 
 browser.runtime.onMessage.addListener((message) => {
-    if (message.action === "showPopup") {
+    if (message.action === "showLoremIpsumModal") {
         // Check if the targetElement is valid
         if (targetElement) {
             const rect = targetElement.getBoundingClientRect();
