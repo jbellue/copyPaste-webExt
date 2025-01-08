@@ -4,7 +4,6 @@ const link = document.createElement("link");
 link.rel = "stylesheet";
 link.type = "text/css";
 link.href = browser.runtime.getURL("styles/styles.css");
-document.head.appendChild(link);
 
 const settings = {
     count: 10,
@@ -30,6 +29,10 @@ browser.runtime.onMessage.addListener((message) => {
         if (targetElement) {
             const rect = targetElement.getBoundingClientRect();
 
+            const shadowHost = document.createElement('div');
+            document.body.appendChild(shadowHost);
+            const shadowRoot = shadowHost.attachShadow({mode: 'closed'});
+            
             // Create the overlay
             const overlay = document.createElement("div");
             overlay.id = "loremIpsumOverlay";
@@ -61,15 +64,16 @@ browser.runtime.onMessage.addListener((message) => {
         <button id="loremIpsumGenerate" class="loremIpsumButton" aria-label="Generate Lorem Ipsum text">Generate ✏️</button>
     </div>
 </div>`;
-            // Append overlay and popup to the body
-            document.body.appendChild(overlay);
-            document.body.appendChild(popup);
+            // Append overlay and popup to the shadowroot
+            shadowRoot.appendChild(overlay);
+            shadowRoot.appendChild(popup);
+            shadowRoot.appendChild(link);
 
             // Update the displayed value of the slider
-            const slider = document.getElementById("loremIpsumNumberSlider");
-            const sliderValue = document.getElementById("loremIpsumSliderValue");
-            const units = document.getElementById("loremIpsumUnits");
-            const sourceText = document.getElementById("loremIpsumSourceText");
+            const slider = shadowRoot.getElementById("loremIpsumNumberSlider");
+            const sliderValue = shadowRoot.getElementById("loremIpsumSliderValue");
+            const units = shadowRoot.getElementById("loremIpsumUnits");
+            const sourceText = shadowRoot.getElementById("loremIpsumSourceText");
             
             populateTextTypes(sourceText);
 
@@ -130,7 +134,7 @@ browser.runtime.onMessage.addListener((message) => {
             })
 
             // Add event listeners for the button
-            document.getElementById("loremIpsumGenerate").addEventListener("click", insertLoremIpsumThenCleanup);
+            shadowRoot.getElementById("loremIpsumGenerate").addEventListener("click", insertLoremIpsumThenCleanup);
 
             function insertLoremIpsumThenCleanup() {
                 generateLoremIpsum().then(loremText => {
@@ -141,11 +145,13 @@ browser.runtime.onMessage.addListener((message) => {
 
             // Function to remove the overlay and popup
             function cleanup() {
-                document.getElementById("loremIpsumGenerate").removeEventListener("click", insertLoremIpsumThenCleanup);
+                shadowRoot.getElementById("loremIpsumGenerate").removeEventListener("click", insertLoremIpsumThenCleanup);
+                document.removeEventListener("keydown", keyboardHandler);
                 overlay.removeEventListener("click", cleanup);
-                document.removeEventListener("keydown", keyboardHandler)
-                document.body.removeChild(overlay);
-                document.body.removeChild(popup);
+                
+                shadowRoot.removeChild(overlay);
+                shadowRoot.removeChild(popup);
+                document.body.removeChild(shadowHost);
             }
 
             // Function to remove the overlay and popup
