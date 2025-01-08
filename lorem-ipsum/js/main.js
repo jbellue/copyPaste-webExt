@@ -138,7 +138,12 @@ browser.runtime.onMessage.addListener((message) => {
 
             function insertLoremIpsumThenCleanup() {
                 generateLoremIpsum().then(loremText => {
-                    targetElement.value = loremText;
+                    if (targetElement.isContentEditable) {
+                        targetElement.innerText = loremText;
+                    }
+                    else {
+                        targetElement.value = loremText;
+                    }
                 })
                 cleanup();
             }
