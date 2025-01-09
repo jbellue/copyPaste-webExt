@@ -1,6 +1,8 @@
 # CopyPaste: A Firefox Extension to Mimic X Primary Selection Clipboard
 
-![Logo](icons/icon.svg)
+<p align="center">
+  <img src="https://github.com/jbellue/copyPaste-webExt/blob/main/icons/icon.svg?raw=true" alt="Logo"/>
+</p>
 
 ## Overview
 
