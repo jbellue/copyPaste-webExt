@@ -1,10 +1,13 @@
 {
     "manifest_version": 2,
     "name": "CopySelectPasteMiddleClick",
-    "version": "1.0",
+    "version": "0.1.0",
+    "author": "Julien Bellue",
   
     "description": "Copy text to a separate clipboard and paste it with middle click on editable fields",
-  
+    "homepage_url":  "https://github.com/jbellue/copypaste-webext",
+    "browser_specific_settings": {"gecko": {"id": "{8f6b4f10-46c5-46b7-88dd-4ebafeeee327}"}},
+
     "permissions": [
         "storage"
       ],
@@ -14,5 +17,10 @@
             "js": ["js/main.js"],
             "all_frames": true
         }
-    ]
+    ],
+    "icons": {
+        "16": "icons/icon-16.png",
+        "48": "icons/icon-48.png",
+        "128": "icons/icon-128.png"
+    }
 }
