@@ -1,6 +1,6 @@
 # CopyPaste: A Firefox Extension to Mimic X Primary Selection Clipboard
 
-![Logo](icons/logo.svg)
+![Logo](icons/icon.svg)
 
 ## Overview
 
