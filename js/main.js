@@ -33,19 +33,6 @@ const handleSelectionChange = (event, doc) => {
         chrome.storage.local.set({ [storageKey]: result.selectedText });
     }
 };
-
-const attachSelectionChangeListener = doc => {
-    doc.addEventListener("selectionchange", event => {
-        handleSelectionChange(event, doc);
-    });
-};
-
-const attachMouseDownListener = doc => {
-    doc.addEventListener("mousedown", event => {
-        handleMiddleClick(event, doc);
-    });
-};
-
 //#endregion
 
 //#region set the text
@@ -150,12 +137,16 @@ const getContentEditableCaretPosition = (doc) => {
 
     return selection.focusOffset;
 }
-
 //#endregion
 
-//#region set event handlers
-attachSelectionChangeListener(document);
-attachMouseDownListener(document);
+//#region set event listeners
+document.addEventListener("selectionchange", event => {
+    handleSelectionChange(event, document);
+});
+
+document.addEventListener("mousedown", event => {
+    handleMiddleClick(event, document);
+});
 
 // Listen for changes in Chrome storage
 chrome.storage.onChanged.addListener((changes, area) => {
