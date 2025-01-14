@@ -25,31 +25,6 @@ const getSelectedText = doc => {
     return {found: found, selectedText: value};
 };
 
-const getIframeSelectionRecursively = (iframe) => {
-    try {
-        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-
-        // Check for selection in this iframe
-        const selection = iframeDoc.getSelection();
-        if (selection && selection.toString()) {
-            return { found: true, selectedText: selection.toString() };
-        }
-
-        // Recursively check nested iframes
-        const nestedIframes = iframeDoc.querySelectorAll("iframe");
-        for (const nestedIframe of nestedIframes) {
-            const result = getIframeSelectionRecursively(nestedIframe);
-            if (result.found) {
-                return result;
-            }
-        }
-    } catch (err) {
-        // ignore
-        // console.warn("Unable to access iframe or nested iframe:", err);
-    }
-    return { found: false, selectedText: "" };
-};
-
 const handleSelectionChange = (event, doc) => {
     let result = getSelectedText(doc);
 
