@@ -43,6 +43,7 @@ const handleMiddleClick = (event) => {
             || target.tagName === "TEXTAREA"
             || target.isContentEditable) {
             event.preventDefault();
+            window.getSelection().removeAllRanges();
             let caretPosition = 0;
 
             // Handle text inputs
