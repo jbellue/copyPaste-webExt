@@ -179,34 +179,8 @@ const getContentEditableCaretPosition = (doc) => {
 //#endregion
 
 //#region set event handlers
-const attachListenersToIframes = (rootDoc, iframePath = []) => {
-    // Attach listeners to the root document
-    attachSelectionChangeListener(rootDoc);
-    attachMouseDownListener(rootDoc);
-
-    // Find all iFrames in the current document
-    const iframes = rootDoc.querySelectorAll("iframe");
-    for (const [index, iframe] of iframes.entries()) {
-        try {
-            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-            const newPath = [...iframePath, `iframe[${index}]`];
-
-            // Attach listener to the iframe document
-            attachListenersToIframes(iframeDoc, newPath);
-
-            // Also observe future nested iframes within this iframe
-            const observer = new MutationObserver(() => {
-                attachListenersToIframes(iframeDoc, newPath);
-            });
-            observer.observe(iframeDoc.body, { childList: true, subtree: true });
-        } catch (err) {
-            // ignore that error, it all works anyway
-            // console.warn("Unable to access iframe content:", err);
-        }
-    }
-};
-
-attachListenersToIframes(document);
+attachSelectionChangeListener(document);
+attachMouseDownListener(document);
 
 // Listen for changes in Chrome storage
 chrome.storage.onChanged.addListener((changes, area) => {
