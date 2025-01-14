@@ -2,8 +2,8 @@ const storageKey = "copy-paste-stored-key";
 let copiedText = "";
 
 //#region get the text
-const getSelectedText = doc => {
-    const selection = doc.getSelection();
+const getSelectedText = () => {
+    const selection = document.getSelection();
     let found = false;
     let value = "";
     if (selection 
@@ -25,8 +25,8 @@ const getSelectedText = doc => {
     return {found: found, selectedText: value};
 };
 
-const handleSelectionChange = (event, doc) => {
-    let result = getSelectedText(doc);
+const handleSelectionChange = (event) => {
+    let result = getSelectedText();
 
     if (result.found && result.selectedText !== "") {
         event.preventDefault();
@@ -36,7 +36,7 @@ const handleSelectionChange = (event, doc) => {
 //#endregion
 
 //#region set the text
-const handleMiddleClick = (event, doc) => {
+const handleMiddleClick = (event) => {
     if (event.button === 1 && copiedText !== "") {
         const target = event.target;
         if ((target.tagName === "INPUT" && target.type === "text") 
@@ -73,14 +73,14 @@ const handleMiddleClick = (event, doc) => {
 
             // Handle contentEditable
             else {
-                caretPosition = getContentEditableCaretPosition(doc);
+                caretPosition = getContentEditableCaretPosition();
             }
-            insertTextAtCaret(doc, target, caretPosition, copiedText);
+            insertTextAtCaret(target, caretPosition, copiedText);
         }
     }
 };
 
-const insertTextAtCaret = (doc, target, caretPosition, text) => {
+const insertTextAtCaret = (target, caretPosition, text) => {
     if (target.setSelectionRange) {
         target.setSelectionRange(caretPosition, caretPosition);
         const textBefore = target.value.slice(0, caretPosition);
@@ -90,7 +90,7 @@ const insertTextAtCaret = (doc, target, caretPosition, text) => {
     }
     else {
         // target should be contenteditable
-        const selection = doc.getSelection();
+        const selection = document.getSelection();
         if (!selection.rangeCount) return;
         const range = selection.getRangeAt(0);
         const commonAncestor = range.commonAncestorContainer;
@@ -99,7 +99,7 @@ const insertTextAtCaret = (doc, target, caretPosition, text) => {
         if (!target.contains(commonAncestor)) return;
 
         // Create a text node with the desired text
-        const textNode = doc.createTextNode(text);
+        const textNode = document.createTextNode(text);
 
         // Insert the text node at the current cursor position
         range.deleteContents(); // Remove any selected text
@@ -131,8 +131,8 @@ const getTextInputCaretPosition = (xCursor, target) => {
     return text.length;
 }
 
-const getContentEditableCaretPosition = (doc) => {
-    const selection = doc.getSelection();
+const getContentEditableCaretPosition = () => {
+    const selection = document.getSelection();
     if (selection.rangeCount === 0) return 0; // No selection
 
     return selection.focusOffset;
@@ -141,11 +141,11 @@ const getContentEditableCaretPosition = (doc) => {
 
 //#region set event listeners
 document.addEventListener("selectionchange", event => {
-    handleSelectionChange(event, document);
+    handleSelectionChange(event);
 });
 
 document.addEventListener("mousedown", event => {
-    handleMiddleClick(event, document);
+    handleMiddleClick(event);
 });
 
 // Listen for changes in Chrome storage
