@@ -54,7 +54,7 @@ const handleSelectionChange = (event, doc) => {
     let result = getSelectedText(doc);
 
     if (result.found && result.selectedText !== "") {
-        event.preventDefault()
+        event.preventDefault();
         chrome.storage.local.set({ [storageKey]: result.selectedText });
     }
 };
@@ -67,9 +67,9 @@ const attachSelectionChangeListener = doc => {
 
 const attachMouseDownListener = doc => {
     doc.addEventListener("mousedown", event => {
-        handleMiddleClick(event, doc)
+        handleMiddleClick(event, doc);
     });
-}
+};
 
 //#endregion
 
@@ -113,7 +113,7 @@ const handleMiddleClick = (event, doc) => {
             else {
                 caretPosition = getContentEditableCaretPosition(doc);
             }
-            insertTextAtCaret(doc, target, caretPosition, copiedText)
+            insertTextAtCaret(doc, target, caretPosition, copiedText);
         }
     }
 };
@@ -129,10 +129,10 @@ const insertTextAtCaret = (doc, target, caretPosition, text) => {
     else {
         // target should be contenteditable
         const selection = doc.getSelection();
-        if (!selection.rangeCount) return; // Exit if there's no selection
+        if (!selection.rangeCount) return;
         const range = selection.getRangeAt(0);
         const commonAncestor = range.commonAncestorContainer;
-    
+
         // Check if the common ancestor is within the contentEditable element
         if (!target.contains(commonAncestor)) return;
 
