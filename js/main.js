@@ -6,10 +6,11 @@ const getSelectedText = () => {
     const selection = document.getSelection();
     let found = false;
     let value = "";
-    if (selection 
-            && selection.rangeCount > 0
-            && selection.anchorNode
-            && selection.anchorNode.nodeType === Node.TEXT_NODE) {
+    if (selection &&
+        selection.rangeCount > 0 &&
+        selection.anchorNode &&
+        selection.anchorNode.nodeType === Node.TEXT_NODE
+    ) {
         found = true;
         value = selection.toString();
     }
@@ -39,9 +40,10 @@ const handleSelectionChange = (event) => {
 const handleMiddleClick = (event) => {
     if (event.button === 1 && copiedText !== "") {
         const target = event.target;
-        if ((target.tagName === "INPUT" && target.type === "text") 
-            || target.tagName === "TEXTAREA"
-            || target.isContentEditable) {
+        if ((target.tagName === "INPUT" && target.type === "text") ||
+            target.tagName === "TEXTAREA" ||
+            target.isContentEditable
+        ) {
             event.preventDefault();
             window.getSelection().removeAllRanges();
             let caretPosition = 0;
@@ -53,7 +55,7 @@ const handleMiddleClick = (event) => {
 
             // Handle textareas
             else if (target.tagName === "TEXTAREA") {
-                /* 
+                /*
                     I'm not sure how to get the caret position in a textarea,
                     and I tried a lot of different ways.
                     The most promising one was creating a div of the size of the textarea,
@@ -106,7 +108,7 @@ const insertTextAtCaret = (target, caretPosition, text) => {
         range.deleteContents(); // Remove any selected text
         range.insertNode(textNode);
     }
-}
+};
 
 const getTextInputCaretPosition = (xCursor, target) => {
     const rect = target.getBoundingClientRect();
@@ -130,14 +132,14 @@ const getTextInputCaretPosition = (xCursor, target) => {
         totalWidth += charWidth;
     }
     return text.length;
-}
+};
 
 const getContentEditableCaretPosition = () => {
     const selection = document.getSelection();
     if (selection.rangeCount === 0) return 0; // No selection
 
     return selection.focusOffset;
-}
+};
 //#endregion
 
 //#region set event listeners
